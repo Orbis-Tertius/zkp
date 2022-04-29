@@ -1,0 +1,5 @@
+name: desnark
+include:
+  src
+depend:
+  standard-library
