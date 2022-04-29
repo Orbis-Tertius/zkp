@@ -1,5 +1,5 @@
 {
-  description = "Denotational zkSnarks";
+  description = "Denotational Zero Knowledge Proofs";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";

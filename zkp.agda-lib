@@ -1,4 +1,4 @@
-name: desnark
+name: zkp
 include:
   src
 depend:
