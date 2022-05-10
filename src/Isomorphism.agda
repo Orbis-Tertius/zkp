@@ -21,7 +21,7 @@ open _≃_
   { to = λ{x → x}
   ; from = λ{x → x}
   ; from∘to = λ{x → refl}
-  ; to∘from = λ{y -> refl}
+  ; to∘from = λ{y → refl}
   }
 
 ≃-sym : ∀ {a b : Set}

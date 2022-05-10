@@ -2,8 +2,10 @@ module Proposition where
 
 open import Function
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (refl)
-open import Relation.Binary using (_⇔_)
+open Eq using (_≡_; refl; cong; cong-app)
+open Eq.≡-Reasoning
+open import Axiom.Extensionality.Propositional using (∀-extensionality)
+
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 import Isomorphism as Iso
 open Iso
@@ -28,6 +30,6 @@ v-distrib-x : ∀ {A : Set} {B C : A → Set} →
 v-distrib-x = record
   { to = λ p → ⟨ (proj₁ ∘ p), (proj₂ ∘ p) ⟩
   ; from = fork
-  ; from∘to = refl
-  ; to∘from = refl
+  ; from∘to = λ x → refl
+  ; to∘from = λ y → refl
   } 
