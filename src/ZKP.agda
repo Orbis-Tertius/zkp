@@ -7,7 +7,7 @@ module ZKP
 
 open import Data.List
 
-import Data.Product using (Σ; ∃; Σ-syntax; ∃-syntax)
+open import Data.Product using (Σ; ∃; Σ-syntax; ∃-syntax)
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 
@@ -49,39 +49,34 @@ simplicity of definition is crucial.
 -- Op₂ = λ (a) (b) (c) f a b → f a b
 --Op₂ f = f
 
-data fn (a b : Set) : Set where
-  fₙ : a → b → fn a b
+
 
 module ⊨⊔-Poset where
-  open Poset
   open Relation.Binary.Lattice
+  open Relation.Binary
 
-  data _⊢_ (a : Set) (b : Set) : Set where
-    e : (a → b) → (a ⊢ b)
+  zkp = List ( ∀ (p : Set) (q : Set → Set)  → q p )
 
+  data Id : (x : Set) → Set where
+    id' : ∀ x → x → (Id x)
 
-  idp : ∀ {c : Set} → (c → c)
-  idp = id
-
-
-  ⊨⊔ : ∀ (p : Set) → p × p → p
-  ⊨⊔  (p) ⟨ p' , p'' ⟩ = lub p' p''
+  _⊨⊔_ : (p : Set l₁) (q : zkp) → zkp → p
+    -- _⊢_ : p → q p Id → p ⊨⊔ q 
+  _⊨⊔_  (p)  = foldl ? ?
     where open IsHeytingAlgebra
-          lub = supremum (IsHeytingAlgebra _≡_ _⊢_ (_⊎_) (_×_) (_⇒_) ⊤ ⊥)
-  infixr 5 ⊨⊔
+          h : IsHeytingAlgebra _≡_ _≤_ _⊎_ _×_ _⇒_ ⊤ ⊥
+          h = ?
+          lub : zkp 
+          lub = ?
+  infixr 5 _⊨⊔_ -- _⊢_
 
 open ⊨⊔-Poset
 
 
-translate : ∀ (x : Set) ( l : (List ((∃ q : Set) → q))) 
-            →  x ⊨⊔ l
-translate (p) (l) prop = {!!}
 
+translate : ∀ (x : Set) ( l : zkp) → x ⊨⊔ l → x
+translate (p) (l) = λ x → {! !}
 
-translate' : ∀ ₗ (x : Set ₗ)
-           → x
-           → List ((∃ q : Set ₗ) → q)
-translate' l x prop = {!!}
 
 
 -- module Conjunction where
