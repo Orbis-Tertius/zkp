@@ -8,10 +8,10 @@ module ZKP
 open import Data.List
 
 open import Data.Product using (Σ; ∃; Σ-syntax; ∃-syntax)
-open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
+open import Relation.Unary
 
-
+open import Data.Nat
 open import Data.Product
   using (_×_; proj₁; proj₂)
   renaming (_,_ to ⟨_,_⟩)
@@ -22,6 +22,7 @@ import Function.Equivalence using (_⇔_)
 
 open import Function
 open import Function.Core
+
 
 import Relation.Binary.Lattice
 
@@ -47,111 +48,64 @@ simplicity of definition is crucial.
 --} 
 -- Op₂ : ∀ a b c → (a → b → c) → a → b → c
 -- Op₂ = λ (a) (b) (c) f a b → f a b
---Op₂ f = f
+-- Op₂ f = f
 
 
-
-module ⊨⊔-Poset where
-  open Relation.Binary.Lattice
-  open Relation.Binary
-
-  zkp = List ( ∀ (p : Set) (q : Set → Set)  → q p )
-
-  data Id : (x : Set) → Set where
-    id' : ∀ x → x → (Id x)
-
-  _⊨⊔_ : (p : Set l₁) (q : zkp) → zkp → p
-    -- _⊢_ : p → q p Id → p ⊨⊔ q 
-  _⊨⊔_  (p)  = foldl ? ?
-    where open IsHeytingAlgebra
-          h : IsHeytingAlgebra _≡_ _≤_ _⊎_ _×_ _⇒_ ⊤ ⊥
-          h = ?
-          lub : zkp 
-          lub = ?
-  infixr 5 _⊨⊔_ -- _⊢_
-
-open ⊨⊔-Poset
-
-
-
-translate : ∀ (x : Set) ( l : zkp) → x ⊨⊔ l → x
-translate (p) (l) = λ x → {! !}
-
-
-
--- module Conjunction where
---   open import Isomorphism
---   data _×_ (A : Set l₁) (B : Set l₂) : Set (l₁ ⊔ l₂) where
---     ⟨_,_⟩ : A → B → A × B
-
---   infixr 2 _×_
-
---   proj₁ : ∀ {A : Set l₁} {B : Set l₂} → A × B → A
---   proj₁ ⟨ x , y ⟩ = x
-
---   proj₂ : ∀ {A : Set l₁} {B : Set l₂} → A × B → B
---   proj₂ ⟨ x , y ⟩ = y
-
---   η-× : ∀ {A : Set l₁} {B : Set l₂} (w : A × B) → ⟨ proj₁ w , proj₂ w ⟩ ≡ w
---   η-× ⟨ x , y ⟩ = refl
-
---   -- ×-comm : ∀ {A : Set l₁} {B : Set l₂} → A × B ≃ B × A
---   -- ×-comm =
---   --   record
---   --     { to       =  λ{ ⟨ x , y ⟩ → ⟨ y , x ⟩ }
---   --     ; from     =  λ{ ⟨ y , x ⟩ → ⟨ x , y ⟩ }
---   --     ; from∘to  =  λ{ ⟨ x , y ⟩ → refl }
---   --     ; to∘from  =  λ{ ⟨ y , x ⟩ → refl }
---   --     }
-
--- module Top where
---   open import Isomorphism
---   data ⊤ : Set where
---     tt : ⊤
-
---   η-⊤ : ∀ (w : ⊤) → tt ≡ w
---   η-⊤ tt = refl
-
---   ⊤-identityˡ : ∀ {A : Set} → ⊤ × A ≃ A
---   ⊤-identityˡ =
---     record
---       { to      = λ{ ⟨ tt , x ⟩ → x }
---       ; from    = λ{ x → ⟨ tt , x ⟩ }
---       ; from∘to = λ{ ⟨ tt , x ⟩ → refl }
---       ; to∘from = λ{ x → refl }
---       }
-
-
--- module Disjunction where
-
-
-
-
-
-
--- What is entailment? Where is its partial order?
-module Entailment where
-  open Poset
+-- Possible Right hand sides
+postulate
+  prop : Set
+  proof : Set
   
+  ptrue      : prop
+  pfalse      : prop
+  
+  _p∧_ : prop → prop → prop
+  _p⊢_ : prop → prop → prop
+  prove : prop → proof → Set
+  ptruth : prop → Set
+  p∀ : (ℕ → prop) → prop
 
-  -- ToDo: Look at Co-Shure Functors
+module ZKP-Plays where
+  open import Data.Bool hiding (_≤_)
+  open import Relation.Nullary using (¬_)
 
-  -- ⊢-isPreorder = ?
-  -- ⊢-isTotalPreorder = ?
-  -- ⊢-isPartialOrder = ?
-    
-  -- ⊢-preorder : IsPreorder ⊢ l₁ l₂
-  -- ⊢-preorder = record
-  --   { isPreorder = ⊢-isPreorder
-  --   }
 
-  -- ⊢-totalPreorder : IsTotalPreorder ⊢ l₁ l₂
-  -- ⊢-totalPreorder = record
-  --   { isTotalPreorder = ⊢-isTotalPreorder
-  --   }
+  zkp₀ = List ( (∃ λ (p : Set) → p ) )
 
-  -- ⊢-poset : Poset ⊢ l₁ l₂
-  -- ⊢-poset = record
-  --   { isPartialOrder = ⊢-isPartialOrder
-  --   }
+  n≤10 = ∃ λ (n : ℕ) → n ≤ 10
 
+  pr-n≤10 : n≤10
+  pr-n≤10 = ⟨ 2 , s≤s (s≤s z≤n) ⟩
+
+  ex-0 : zkp₀
+  ex-0 = ⟨ ℕ , 1 ⟩ ∷ ⟨ Bool , true ⟩ ∷ []
+
+  zkp₁ : Set
+  zkp₁ = ℕ → prop
+
+  -- zkp₁₁ = Stream prop 
+
+  postulate
+    zkp : Set
+
+    prop-to-zkp : (p : prop) → zkp
+
+    get-prop : ℕ → zkp → prop
+  
+    seed-proposition-dominates : ∀ (p : prop) (n : ℕ) → ptruth (p p⊢ (get-prop n (prop-to-zkp p)))
+
+    -- Completeness: if the statement is true, an honest verifier will be convinced of this fact by an honest prover.
+    zkp-completeness : ∀ (p : prop) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp p)) p⊢ p)
+
+    -- Soundness: if the statement is false,
+    -- no cheating prover can convince an honest verifier that it is true in the limit.
+    -- In this maximally insular (anthony's phrasing) setting, a proof of the false statement
+    -- allows any prop to be proven. If you can be convinced using a zkp for false you can be
+    -- convinced of anything (anthony's actual phrasing).
+    zkp-soundness : ∀ (p : prop) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp pfalse)) p⊢ p)
+    -- This formulation is closer to the traditional zkp setting where soundness is interpreted as
+    -- the limit of the zkp of a false proposition should not be convincing.
+    zkp-soundness₁ : ¬ ptruth (p∀ λ n → get-prop n (prop-to-zkp pfalse))
+
+    -- None of the subpropositions for the zkp of p imply p
+    zero-knowledge? : ∀ (p : prop) (n : ℕ) → ¬ ptruth ((get-prop n (prop-to-zkp p) p⊢ p))
