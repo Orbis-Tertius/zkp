@@ -63,7 +63,8 @@ postulate
   _p⊢_ : prop → prop → prop
   prove : prop → proof → Set
   ptruth : prop → Set
-  p∀ : (ℕ → prop) → prop
+  _p≤_ : prop → prop → Set
+  lub : ∀ {a : Set} → (a → prop) → prop
 
 module ZKP-Plays where
   open import Data.Bool hiding (_≤_)
@@ -83,7 +84,8 @@ module ZKP-Plays where
   zkp₁ : Set
   zkp₁ = ℕ → prop
 
-  -- zkp₁₁ = Stream prop 
+  p∀ : (ℕ → prop) → prop
+  p∀ = lub
 
   postulate
     zkp : Set
@@ -109,3 +111,6 @@ module ZKP-Plays where
 
     -- None of the subpropositions for the zkp of p imply p
     zero-knowledge? : ∀ (p : prop) (n : ℕ) → ¬ ptruth ((get-prop n (prop-to-zkp p) p⊢ p))
+
+    lub-ub-property : ∀ (a : Set) (f : a → prop) (x : a) → f x p≤ (lub f) 
+    lub-lb-property : ∀ (a : Set) (f : a → prop) (p : prop) → (∀ (x : a) → f x p≤ p) → lub f p≤ p
