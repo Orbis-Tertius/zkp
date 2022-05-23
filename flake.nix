@@ -22,6 +22,7 @@
         pkgs.nixpkgs-fmt
         (agdaPkgs.agda.withPackages (ps: [
           ps.standard-library
+          ps.agda-categories
         ]))
       ];
     };

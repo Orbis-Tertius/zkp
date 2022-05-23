@@ -35,13 +35,13 @@ import Relation.Binary
 Conal's Recipie:
 
 Proofs can be translated into probabilistic proofs such that:
- - the translated proof has zk property (which needs to be clarified).
- - proof translation is tractable, while reverse translation is intractable.
+ - the translated proof has zk property (which needs to be clarified). --  zero-knowledge?
+ - proof translation is tractable, while reverse translation is intractable. -- accounted for by the infinite sequence
  - a expanded proof of a proposition is an infinite sequence of propositions
     and their corresponding proofs such that the least the upper bound of the propositions converges
     to the original proposition (in the entailment partial order).
      
-look for a natural function that maps regular proofs to probabilistic proofs
+look for a natural function that maps regular proofs to expanded proofs
 or vice versa — whichever way is simpler.
 simplicity of definition is crucial.
 
@@ -55,10 +55,8 @@ simplicity of definition is crucial.
 postulate
   prop : Set
   proof : Set
-  
-  ptrue      : prop
-  pfalse      : prop
-  
+  ptrue : prop
+  pfalse : prop
   _p∧_ : prop → prop → prop
   _p⊢_ : prop → prop → prop
   prove : prop → proof → Set
@@ -69,7 +67,6 @@ postulate
 module ZKP-Plays where
   open import Data.Bool hiding (_≤_)
   open import Relation.Nullary using (¬_)
-
 
   zkp₀ = List ( (∃ λ (p : Set) → p ) )
 
