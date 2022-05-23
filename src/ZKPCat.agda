@@ -53,29 +53,18 @@ module Abs where
 module MessageCat where
   open Categories.Category
   open Categories.Category.Cartesian
+  open Categories.Category.Cocartesian
   open import Relation.Binary using (Rel)
   open import Agda.Primitive using (lzero)
+
   postulate
-    messageKind : Set
-    _m-×_ : messageKind → messageKind → messageKind
-    _m-+_ : messageKind → messageKind → messageKind
-    m-top : messageKind
-    m-bot : messageKind
-    m-⇒ : Rel messageKind lzero
-  instance
-    mcat : Category _ _ lzero
-    mcat = record
-             { Obj = messageKind
-             ; _⇒_ = m-⇒
-             ; _≈_ = _≡_
-             ; id = {!!}
-             ; _∘_ = {!!}
-             ; assoc = {!!}
-             ; sym-assoc = {!!}
-             ; identityˡ = {!!}
-             ; identityʳ = {!!}
-             ; identity² = {!!}
-             ; equiv = {!!}
-             ; ∘-resp-≈ = {!!}
-             }
+    mcat' : Category lzero lzero lzero
+    mcart : Cartesian mcat'
+    mcocart : Cocartesian mcat'
+    
+  messageKind = Category.Obj mcat'
+  m-id = Category.id mcat'
+  _m∘_ = Category._∘_ mcat'
+
+module CypherAlg where
     
