@@ -1,14 +1,11 @@
 open import Level
 
-module ZKP
-  { l₁ l₂ : Level
-  }
-  where
+module ZKP where
 
 open import Data.List
 
 open import Data.Product using (Σ; ∃; Σ-syntax; ∃-syntax)
-open import Relation.Binary.PropositionalEquality
+import Relation.Binary.PropositionalEquality
 open import Relation.Unary
 
 open import Data.Nat
@@ -18,15 +15,8 @@ open import Data.Product
 open import Data.Unit using (⊤; tt)
 open import Data.Sum using (_⊎_; inj₁; inj₂) renaming ([_,_] to case-⊎)
 open import Data.Empty using (⊥; ⊥-elim)
-import Function.Equivalence using (_⇔_)
 
-open import Function
-open import Function.Core
-
-
-import Relation.Binary.Lattice
-
-import Relation.Binary
+import Function hiding (Equivalence)
 
 -- import Relation.Binary.Properties.HeytingAlgebra
 
@@ -53,20 +43,67 @@ simplicity of definition is crucial.
 
 -- Possible Right hand sides
 postulate
-  prop : Set
-  proof : Set
-  ptrue : prop
-  pfalse : prop
-  _p∧_ : prop → prop → prop
-  _p⊢_ : prop → prop → prop
-  prove : prop → proof → Set
-  ptruth : prop → Set
-  _p≤_ : prop → prop → Set
-  lub : ∀ {a : Set} → (a → prop) → prop
+  A : Set
+  proof : A
+  ptrue : A
+  pfalse : A
+  _p∧_ : A → A → A
+  _p⊢_ : A → A → A
+  prove : A → A → Set
+  ptruth : A → Set
+  _p≤_ : A → A → Set
+  lub : ∀ {a : Set} → (a → A) → A
 
-module ZKP-Plays where
+
+module ⊨-PartialOrder where
+  open import Relation.Binary using (Rel; IsPreorder; IsPartialOrder; IsEquivalence)
+  open import Function.Equivalence using (_⇔_; Equivalence)
+  open import Function.Related using (Related; K-refl;
+                                      K-trans; _∼[_]_;
+                                      SK-isEquivalence; SK-setoid;
+                                      equivalence; implication)
+  open import Function.Properties.Equivalence using (⇔-isEquivalence)
+  open import Function.Equality using (_⟨$⟩_; ≡-setoid)
+
+  _⊨_ : ∀ {ℓ : Level} → Rel (Set ℓ) ℓ
+  _⊨_ a b = a → b
+
+
+  ⊨-isPreorder : ∀ {ℓ : Level} → IsPreorder _⇔_ _⊨_
+  ⊨-isPreorder {ℓ} = record
+    { isEquivalence = SK-isEquivalence equivalence ℓ
+    ; reflexive = λ z → _⟨$⟩_ (Equivalence.to z)
+    ; trans = K-trans
+    }
+
+  ⊨-isPartialOrder : ∀ {ℓ : Level} → IsPartialOrder _⇔_ _⊨_
+  ⊨-isPartialOrder {l} = record
+    { isPreorder = ⊨-isPreorder {l}
+    ; antisym = λ i⊨j j⊨i → record
+        { to = record
+          { _⟨$⟩_ = i⊨j
+          ; cong = λ a₁≈a₂ → {! cong i⊨j a₁≈a₂ (Setoid.refl B)!} 
+          }
+        ; from = record
+          { _⟨$⟩_ = j⊨i
+          ; cong = {!!}
+          }
+        }
+    }
+    where
+      open Equivalence
+      open Function.Equality
+      open Function.Related
+      open Function.Equivalence
+      
+open ⊨-PartialOrder public
+
+
+
+module Denotation where
   open import Data.Bool hiding (_≤_)
   open import Relation.Nullary using (¬_)
+  
 
   zkp₀ = List ( (∃ λ (p : Set) → p ) )
 
@@ -76,38 +113,40 @@ module ZKP-Plays where
   pr-n≤10 = ⟨ 2 , s≤s (s≤s z≤n) ⟩
 
   ex-0 : zkp₀
-  ex-0 = ⟨ ℕ , 1 ⟩ ∷ ⟨ Bool , true ⟩ ∷ []
+  ex-0 = ⟨ ℕ , 1 ⟩ ∷ ⟨ Bool , true ⟩ ∷ ⟨ n≤10 , pr-n≤10 ⟩ ∷ []
 
   zkp₁ : Set
-  zkp₁ = ℕ → prop
+  zkp₁ = ℕ → A
 
-  p∀ : (ℕ → prop) → prop
+  p∀ : (ℕ → A) → A
   p∀ = lub
 
   postulate
     zkp : Set
 
-    prop-to-zkp : (p : prop) → zkp
+    prop-to-zkp : (p : A) → zkp
 
-    get-prop : ℕ → zkp → prop
+    get-prop : ℕ → zkp → A
   
-    seed-proposition-dominates : ∀ (p : prop) (n : ℕ) → ptruth (p p⊢ (get-prop n (prop-to-zkp p)))
+    seed-proposition-dominates : ∀ (p : A) (n : ℕ) → ptruth (p p⊢ (get-prop n (prop-to-zkp p)))
 
     -- Completeness: if the statement is true, an honest verifier will be convinced of this fact by an honest prover.
-    zkp-completeness : ∀ (p : prop) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp p)) p⊢ p)
+    zkp-completeness : ∀ (p : A) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp p)) p⊢ p)
 
     -- Soundness: if the statement is false,
     -- no cheating prover can convince an honest verifier that it is true in the limit.
     -- In this maximally insular (anthony's phrasing) setting, a proof of the false statement
     -- allows any prop to be proven. If you can be convinced using a zkp for false you can be
     -- convinced of anything (anthony's actual phrasing).
-    zkp-soundness : ∀ (p : prop) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp pfalse)) p⊢ p)
+    zkp-soundness : ∀ (p : A) → ptruth ((p∀ λ n → get-prop n (prop-to-zkp pfalse)) p⊢ p)
     -- This formulation is closer to the traditional zkp setting where soundness is interpreted as
     -- the limit of the zkp of a false proposition should not be convincing.
     zkp-soundness₁ : ¬ ptruth (p∀ λ n → get-prop n (prop-to-zkp pfalse))
 
     -- None of the subpropositions for the zkp of p imply p
-    zero-knowledge? : ∀ (p : prop) (n : ℕ) → ¬ ptruth ((get-prop n (prop-to-zkp p) p⊢ p))
+    zero-knowledge? : ∀ (p : A) (n : ℕ) → ¬ ptruth ((get-prop n (prop-to-zkp p) p⊢ p))
 
-    lub-ub-property : ∀ (a : Set) (f : a → prop) (x : a) → f x p≤ (lub f) 
-    lub-lb-property : ∀ (a : Set) (f : a → prop) (p : prop) → (∀ (x : a) → f x p≤ p) → lub f p≤ p
+    lub-ub-property : ∀ (a : Set) (f : a → A) (x : a) → f x p≤ (lub f) 
+    lub-lb-property : ∀ (a : Set) (f : a → A) (p : A) → (∀ (x : a) → f x p≤ p) → lub f p≤ p
+
+open Denotation
