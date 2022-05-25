@@ -56,7 +56,8 @@ postulate
 
 
 module ⊨-PartialOrder where
-  open import Relation.Binary using (Rel; IsPreorder; IsPartialOrder; IsEquivalence)
+  open import Relation.Binary using (Rel; IsPreorder; IsPartialOrder;
+                                    IsEquivalence; Setoid; Antisymmetric)
   open import Function.Equivalence using (_⇔_; Equivalence)
   open import Function.Related using (Related; K-refl;
                                       K-trans; _∼[_]_;
@@ -64,6 +65,7 @@ module ⊨-PartialOrder where
                                       equivalence; implication)
   open import Function.Properties.Equivalence using (⇔-isEquivalence)
   open import Function.Equality using (_⟨$⟩_; ≡-setoid)
+
 
   _⊨_ : ∀ {ℓ : Level} → Rel (Set ℓ) ℓ
   _⊨_ a b = a → b
@@ -77,25 +79,19 @@ module ⊨-PartialOrder where
     }
 
   ⊨-isPartialOrder : ∀ {ℓ : Level} → IsPartialOrder _⇔_ _⊨_
-  ⊨-isPartialOrder {l} = record
-    { isPreorder = ⊨-isPreorder {l}
+  ⊨-isPartialOrder {ℓ} = record
+    { isPreorder = ⊨-isPreorder {ℓ}
     ; antisym = λ i⊨j j⊨i → record
-        { to = record
-          { _⟨$⟩_ = i⊨j
-          ; cong = λ a₁≈a₂ → {! cong i⊨j a₁≈a₂ (Setoid.refl B)!} 
-          }
-        ; from = record
-          { _⟨$⟩_ = j⊨i
-          ; cong = {!!}
-          }
+      { to = record
+        { _⟨$⟩_ = λ x → i⊨j x
+        ; cong = λ x → {!!}
         }
-    }
-    where
-      open Equivalence
-      open Function.Equality
-      open Function.Related
-      open Function.Equivalence
-      
+      ; from = record
+        { _⟨$⟩_ = λ x → j⊨i x
+        ; cong = λ x → {!!}
+        }
+      }
+    }  
 open ⊨-PartialOrder public
 
 
