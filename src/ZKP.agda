@@ -57,15 +57,14 @@ postulate
 
 module ⊨-PartialOrder where
   open import Relation.Binary using (Rel; IsPreorder; IsPartialOrder;
-                                    IsEquivalence; Setoid; Antisymmetric)
-  open import Function.Equivalence using (_⇔_; Equivalence)
-  open import Function.Related using (Related; K-refl;
-                                      K-trans; _∼[_]_;
-                                      SK-isEquivalence; SK-setoid;
-                                      equivalence; implication)
+                                    IsEquivalence; Setoid; _Preserves_⟶_)
+  open import Function.Bundles using (_⇔_; Equivalence; Func)
+  open import Function.Related.Propositional
+    using (Related; K-refl;
+          K-trans; _∼[_]_;
+          SK-isEquivalence; SK-setoid;
+          equivalence; implication)
   open import Function.Properties.Equivalence using (⇔-isEquivalence)
-  open import Function.Equality using (_⟨$⟩_; ≡-setoid)
-
 
   _⊨_ : ∀ {ℓ : Level} → Rel (Set ℓ) ℓ
   _⊨_ a b = a → b
@@ -73,25 +72,23 @@ module ⊨-PartialOrder where
 
   ⊨-isPreorder : ∀ {ℓ : Level} → IsPreorder _⇔_ _⊨_
   ⊨-isPreorder {ℓ} = record
-    { isEquivalence = SK-isEquivalence equivalence ℓ
-    ; reflexive = λ z → _⟨$⟩_ (Equivalence.to z)
-    ; trans = K-trans
+    { isEquivalence = ⇔-isEquivalence {ℓ}
+    ; reflexive = Equivalence.to
+    ; trans = λ z z₁ z₂ → z₁ (z z₂)
     }
 
   ⊨-isPartialOrder : ∀ {ℓ : Level} → IsPartialOrder _⇔_ _⊨_
   ⊨-isPartialOrder {ℓ} = record
     { isPreorder = ⊨-isPreorder {ℓ}
-    ; antisym = λ i⊨j j⊨i → record
-      { to = record
-        { _⟨$⟩_ = λ x → i⊨j x
-        ; cong = λ x → {!!}
-        }
-      ; from = record
-        { _⟨$⟩_ = λ x → j⊨i x
-        ; cong = λ x → {!!}
-        }
-      }
-    }  
+    ; antisym = λ fg gf → record
+      { to = fg
+      ; from = gf
+      ; to-cong = λ {i} {j} ≈-fg → cong fg ≈-fg
+      ; from-cong = λ {i} {j} ≈-gf → cong gf ≈-gf
+      } 
+    } where
+        open Relation.Binary.PropositionalEquality
+            
 open ⊨-PartialOrder public
 
 
