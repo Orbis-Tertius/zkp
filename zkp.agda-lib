@@ -2,5 +2,4 @@ name: zkp
 include:
   src
 depend:
-  standard-library
-  agda-categories
+  standard-library-2.0
