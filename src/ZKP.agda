@@ -6,17 +6,18 @@ open import Data.List
 
 open import Data.Product using (Σ; ∃; Σ-syntax; ∃-syntax)
 open import Relation.Binary.PropositionalEquality
-open import Relation.Unary
-
+open import Data.Bool hiding (_≤_)
 open import Data.Nat
 open import Data.Product
   using (_×_; proj₁; proj₂)
   renaming (_,_ to ⟨_,_⟩)
-open import Data.Unit using (⊤; tt)
+open import Data.Unit.Polymorphic
 open import Data.Sum using (_⊎_; inj₁; inj₂) renaming ([_,_] to case-⊎)
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty
 
-import Function hiding (Equivalence)
+open import Function hiding (Equivalence)
+
+
 
 -- import Relation.Binary.Properties.HeytingAlgebra
 
@@ -55,9 +56,29 @@ simplicity of definition is crucial.
 --   lub : ∀ {a : Set} → (a → A) → A
 
 
-module ⊨-PartialOrder where
-  open import Relation.Binary using (Rel; IsPreorder; IsPartialOrder;
-                                    IsEquivalence; Setoid; _Preserves_⟶_)
+
+module ⊨-Structures where
+  open import Relation.Unary using (Pred)
+  --
+
+  data PList {ℓ} {A : Set ℓ} : Set (Level.suc ℓ) where
+    p₀ : ∀ {X : Set ℓ} {P : Pred X ℓ} {v : X} → P v → (∀ x → P x → A) → PList {ℓ} {A}
+    _<p>_ : ∀ {X : Set ℓ} {P : Pred X ℓ} {v : X} → P v → (∀ x → P x → A) → PList {ℓ} {A} → PList {ℓ} {A}
+
+
+  zkp : ∀ {ℓ} {A : Set ℓ} → PList {ℓ} {A} → A 
+  zkp {ℓ} {A} (p₀ x f) = {!!}
+  zkp {ℓ} {A} ((x <p> f) x₂) = {!!}
+  
+open ⊨-Structures
+
+
+module ⊣-Structures where
+  open import Relation.Binary using (Rel; REL; IsPreorder; IsPartialOrder;
+                                    IsEquivalence; Setoid; _Preserves_⟶_;
+                                    Maximum;
+                                    Minimum
+                                    )
   open import Function.Bundles using (_⇔_; Equivalence; Func)
   open import Function.Related.Propositional
     using (Related; K-refl;
@@ -65,23 +86,29 @@ module ⊨-PartialOrder where
           SK-isEquivalence; SK-setoid;
           equivalence; implication)
   open import Function.Properties.Equivalence using (⇔-isEquivalence)
-  open import Relation.Binary.Lattice using (Supremum; IsJoinSemilattice)
+  open import Relation.Binary.Lattice using (Infimum; Supremum;
+                                            IsLattice; IsBoundedLattice;
+                                            IsDistributiveLattice;
+                                            IsHeytingAlgebra;
+                                            IsBooleanAlgebra)
+
+  _⊣_ : ∀ {ℓ : Level} → Rel (Set ℓ) _
+  _⊣_ b a = a → b
+
+  _⊢_ : ∀ {ℓ : Level} → Rel (Set ℓ) _
+  _⊢_ a b = a → b
 
 
-  _⊨_ : ∀ {ℓ : Level} → Rel (Set ℓ) ℓ
-  _⊨_ b a = a → b
-
-
-  ⊨-isPreorder : ∀ {ℓ : Level} → IsPreorder _⇔_ _⊨_
-  ⊨-isPreorder {ℓ} = record
+  ⊣-isPreorder : ∀ {ℓ : Level} → IsPreorder _⇔_ _⊣_
+  ⊣-isPreorder {ℓ} = record
     { isEquivalence = ⇔-isEquivalence {ℓ}
     ; reflexive = Equivalence.from
-    ; trans = λ x x₁ x₂ → x (x₁ x₂)
+    ; trans = λ z z₁ z₂ → z (z₁ z₂)
     }
 
-  ⊨-isPartialOrder : ∀ {ℓ : Level} → IsPartialOrder _⇔_ _⊨_
-  ⊨-isPartialOrder {ℓ} = record
-    { isPreorder = ⊨-isPreorder {ℓ}
+  ⊣-isPartialOrder : ∀ {ℓ : Level} → IsPartialOrder _⇔_ _⊣_
+  ⊣-isPartialOrder {ℓ} = record
+    { isPreorder = ⊣-isPreorder {ℓ}
     ; antisym = λ fg gf → record
       { to = gf
       ; from = fg
@@ -91,48 +118,105 @@ module ⊨-PartialOrder where
     } where
         open Relation.Binary.PropositionalEquality
 
-  ⊨-lub : ∀ {ℓ : Level} → Supremum (_⊨_ {ℓ}) _×_
-  ⊨-lub {ℓ} = λ x y → ⟨ proj₁ , ⟨ proj₂ , (λ z z₁ z₂ z₃ → ⟨ z₁ z₃ , z₂ z₃ ⟩) ⟩ ⟩
+  ⊣-sup : ∀ {ℓ : Level} → Supremum (_⊣_ {ℓ}) _×_
+  ⊣-sup = λ x y → ⟨ proj₁ , ⟨ proj₂ , (λ z z₁ z₂ z₃ → ⟨ z₁ z₃ , z₂ z₃ ⟩) ⟩ ⟩
 
-  ⊨-joinSL : {ℓ : Level} → IsJoinSemilattice _⇔_ (_⊨_ {ℓ}) _×_
-  ⊨-joinSL = record
-    { isPartialOrder = ⊨-isPartialOrder
-    ; supremum = ⊨-lub
+  ⊣-inf : ∀ {ℓ : Level} → Infimum (_⊣_ {ℓ}) _⊎_
+  ⊣-inf = λ A B → ⟨ inj₁ , ⟨ inj₂ , (λ Z za zb aOrb → case-⊎ za zb aOrb ) ⟩ ⟩
+
+  ⊣-Lattice : ∀ {ℓ : Level} → IsLattice _⇔_ _⊣_ _×_ _⊎_
+  ⊣-Lattice {ℓ} = record
+    { isPartialOrder = ⊣-isPartialOrder {ℓ}
+    ; supremum = ⊣-sup
+    ; infimum = ⊣-inf
     }
-    
-open ⊨-PartialOrder public
 
+  ⊣-lub : {ℓ : Level} {x y z : Set ℓ} → x ⊣ z → y ⊣ z → (x × y) ⊣ z
+  ⊣-lub {ℓ} = IsLattice.∨-least (⊣-Lattice {ℓ})
+
+  ⊢-isPreorder : ∀ {ℓ : Level} → IsPreorder _⇔_ _⊢_
+  ⊢-isPreorder {ℓ} = record
+    { isEquivalence = ⇔-isEquivalence {ℓ}
+    ; reflexive = Equivalence.to
+    ; trans = λ z z₁ z₂ → z₁ (z z₂)
+    }
+
+  ⊢-isPartialOrder : ∀ {ℓ : Level}
+    → IsPartialOrder _⇔_ _⊢_
+  ⊢-isPartialOrder {ℓ} = record
+    { isPreorder = ⊢-isPreorder {ℓ}
+    ; antisym = λ fg gf → record
+      { to = fg
+      ; from = gf
+      ; to-cong = λ ≈-fg → cong fg ≈-fg
+      ; from-cong = λ ≈-gf → cong gf ≈-gf
+      } 
+    } where
+        open Relation.Binary.PropositionalEquality
+
+  ⊢-lub : {ℓ : Level} {x y z : Set ℓ} → x ⊢ z → y ⊢ z → (x × y) ⊢ z
+  ⊢-lub {ℓ} = λ _ z z₁ → z (proj₂ z₁)
+      
+open ⊣-Structures public
 
 
 module Denotation where
   open import Data.Bool hiding (_≤_)
   open import Relation.Nullary using (¬_)
-  
+  open import Relation.Unary
 
-  zkp₀ = List ( (∃ λ (p : Set) → p ) )
+  zkp₀ : ∀ {ℓ} → Set (Level.suc ℓ) 
+  zkp₀ {ℓ} = ∃ λ (p : Set ℓ) → p
+  
+  -- prop = ∀ {ℓ} {A : Set ℓ} → Pred A ℓ
+
+  -- zkp' : ∀ {ℓ} {A : Set ℓ} → Pred A ℓ → Set ℓ
+  -- zkp' {ℓ} {A} P = (Π[ P ] → A)
+
+  -- verify : ∀ {ℓ} {A : Set ℓ} (p : Pred A ℓ) → zkp' p
+  -- verify = λ p x → {!!}
+  -- propositions = ℕ → (∀ {ℓ} {A : Set ℓ} → p {ℓ} {A})
+  
+  -- verify : ∀ {A : Set} → A → propositions → Set  
+  -- verify = {!!}
+
+  fin-zkp = List (zkp₀ {0ℓ})
+
+  --fin-zkp' = List (prop)
+
+  -- lubs : fin-zkp → zkp₀
+  -- lubs l = foldr ⊢-lub _ l
+  --   where
+  --     go : ∀ {ℓ} {a b c : Set ℓ} → (b ⊣ a) → (c ⊣ a) → (b × c) ⊣ a
+  --     go = ⊣-lub
+
 
   n≤10 = ∃ λ (n : ℕ) → n ≤ 10
-
+  
   pr-n≤10 : n≤10
   pr-n≤10 = ⟨ 2 , s≤s (s≤s z≤n) ⟩
 
-  ex-0 : zkp₀
+  ex-0 : fin-zkp
   ex-0 = ⟨ ℕ , 1 ⟩ ∷ ⟨ Bool , true ⟩ ∷ ⟨ n≤10 , pr-n≤10 ⟩ ∷ []
 
-  zkp : Set _
-  zkp = ∀ (A : Set) → (ℕ → A)
+  
 
-  -- p∀ : ∀ (A : Set) → (ℕ → A) → A
-  -- p∀ = λ A z → z ℕ.zero
+  -- lubs : List (zkp₀) → _
+  -- lubs : _ 
 
-  -- prop-to-zkp : ∀ (A : Set) → (p : A) → zkp
-  -- prop-to-zkp = λ A p A₁ x → {!!}
 
-  get-prop : ∀ (A : Set) → ℕ → zkp → A
-  get-prop = λ A x x₁ → x₁ A x
+  -- zkp : ∀ {A : Set} → ℕ → A
+  -- zkp = {!!}
+  -- prop-to-zkp : ∀ {ℓ} (A : Set ℓ) → zkp
+  -- prop-to-zkp = λ A x → {!!}
+
+  -- get-prop : ∀ {A : Set} → ℕ → zkp → A
+  -- get-prop = λ i p → p i
+
+  -- zkp-to-prop : zkp → 
 
   -- seed-proposition-dominates : ∀ (A : Set)(p : A) (n : ℕ)
-  --   → true ≡ (p ⊨ (get-prop n (prop-to-zkp p)))
+  --   → (get-prop n (λ _ → A) (prop-to-zkp p) ⊨ p)
   -- seed-proposition-dominates = ?
 
   -- -- Completeness: if the statement is true, an honest verifier will be convinced of this fact by an honest prover.
@@ -156,4 +240,13 @@ module Denotation where
   -- zero-knowledge? : ∀ (A : Set)(p : A) (n : ℕ) → ¬ true ((get-prop n (prop-to-zkp p) ⊨ p))
   -- zero-knowledge? = ?
 
-open Denotation
+open Denotation public
+
+
+module Yoneda where
+
+  hom : ∀ {ℓ} (A : Set ℓ) (P Q : A → Set ℓ) → Set _
+  hom (A) (P) (Q) = (x : A) → (P x → Q x)
+
+
+open Yoneda public
