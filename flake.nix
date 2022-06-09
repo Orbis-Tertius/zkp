@@ -1,29 +1,32 @@
 {
   description = "Denotational Zero Knowledge Proofs";
-
-  inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
-    flake-compat = {
+  inputs = 
+  {
+    flake-compat = 
+    {
       url = "github:edolstra/flake-compat";
       flake = false;
     };
     agda.url = "github:agda/agda";
   };
 
-  outputs = { self, nixpkgs, flake-utils, agda, ... }:
-  flake-utils.lib.eachDefaultSystem
-  (system:
+  outputs = { self, nixpkgs, agda, ... }:
   let
-    pkgs = import nixpkgs { inherit system; };
+    pkgs = nixpkgs.legacyPackages.x86_64-linux;
   in
   {
-    devShell = pkgs.mkShell {
-      buildInputs = [
+    # restrict which systems to build in CI
+    herculesCI.ciSystems = ["x86_64-linux"];
+    devShells.x86_64-linux.default = pkgs.mkShell 
+    {
+      buildInputs = 
+      [
         pkgs.nixpkgs-fmt
         (pkgs.agda.withPackages (ps: [
           (ps.standard-library.overrideAttrs (oldAttrs: {
             version = "2.0";
-            src =  pkgs.fetchFromGitHub {
+            src =  pkgs.fetchFromGitHub 
+            {
               repo = "agda-stdlib";
               owner = "agda";
               rev = "6e79234dcd47b7ca1d232b16c9270c33ff42fb84";
@@ -34,7 +37,5 @@
         ]))
       ];
     };
-  }
-  );
-
+  };
 }
