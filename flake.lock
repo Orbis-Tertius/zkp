@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "agda-categories": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1653613155,
-        "narHash": "sha256-xYDiewH8F2wZ//4yg3nXZs6yu8rGIaRpQuzXfba70gs=",
-        "owner": "agda",
-        "repo": "agda-categories",
-        "rev": "45798f85cde25c12dfff069a245ca9042c04b9b0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "agda",
-        "repo": "agda-categories",
-        "type": "github"
-      }
-    },
     "agda-stdlib": {
       "flake": false,
       "locked": {
@@ -50,7 +34,6 @@
     },
     "root": {
       "inputs": {
-        "agda-categories": "agda-categories",
         "agda-stdlib": "agda-stdlib",
         "nixpkgs": "nixpkgs"
       }

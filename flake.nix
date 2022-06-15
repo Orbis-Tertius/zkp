@@ -1,11 +1,8 @@
 {
   description = "Denotational Zero Knowledge Proofs";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    agda-stdlib = { url = "github:agda/agda-stdlib"; flake = false; };
-    agda-categories = { url = "github:agda/agda-categories"; flake = false; };
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.agda-stdlib = { url = "github:agda/agda-stdlib"; flake = false; };
 
   outputs = { self, nixpkgs, ... }@inputs:
     let
@@ -14,7 +11,7 @@
       nixpkgsFor = forAllSystems (system: nixpkgs.legacyPackages.${system});
     in
     {
-      devShells = forAllSystems (system: rec {
+      devShells = forAllSystems (system: {
         default = nixpkgsFor.${system}.mkShell {
           packages = [
             (nixpkgsFor.${system}.agda.withPackages (ps: [
