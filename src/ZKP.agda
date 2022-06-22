@@ -58,18 +58,21 @@ simplicity of definition is crucial.
 
 
 module ⊨-Structures where
-  open import Relation.Unary using (Pred)
-  --
+  open import Relation.Unary using (Pred; Universal; _⟨×⟩_)
 
   data PList {ℓ} {A : Set ℓ} : Set (Level.suc ℓ) where
-    p₀ : ∀ {X : Set ℓ} {P : Pred X ℓ} {v : X} → P v → (∀ x → P x → A) → PList {ℓ} {A}
-    _<p>_ : ∀ {X : Set ℓ} {P : Pred X ℓ} {v : X} → P v → (∀ x → P x → A) → PList {ℓ} {A} → PList {ℓ} {A}
+    [_]ₚ : PList {ℓ} {A}
+    _∷ₚ_ : ∀ {X : Set ℓ} → Pred X ℓ → PList {ℓ} {A} → PList {ℓ} {A}
 
-
-  zkp : ∀ {ℓ} {A : Set ℓ} → PList {ℓ} {A} → A 
-  zkp {ℓ} {A} (p₀ x f) = {!!}
-  zkp {ℓ} {A} ((x <p> f) x₂) = {!!}
+  foldlₚ : ∀ {ℓ} {A : Set ℓ}
+    -- → ({X : Set ℓ} {Y : Set ℓ} → Pred X ℓ → Pred Y ℓ → Pred (X × Y) ℓ)
+    → PList {ℓ} {A}
+    → A
+  foldlₚ [_]ₚ = {!!}
+  foldlₚ (x ∷ₚ ps) = {!!}
   
+  zkp : ∀ {ℓ} {A : Set ℓ} → ({X : Set ℓ} {P : Pred X ℓ} → Universal P) → PList {ℓ} {A} → A 
+  zkp {ℓ} {A} f ps = {!!} -- (foldlₚ ( _⟨×⟩_ ) ps )
 open ⊨-Structures
 
 
