@@ -17,6 +17,11 @@ module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
     terminal : Bool → Verification
     nextStep : (m × (m → Verification)) → Verification
 
+  onV : ∀ {ℓx : Level} {a : Set ℓx}
+    → (Bool → a) → ((m × (m → Verification)) → a) → Verification → a
+  onV r l (terminal x) = r x
+  onV r l (nextStep x) = l x
+
   data Argument : Set ℓₘ where
     arg : m × (m → Argument) → Argument
 
@@ -48,7 +53,6 @@ module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
       oneStep _ (terminal x) = x
       oneStep a (nextStep ( mv , cv ) ) = let
               ( pᵢ , aᵢ ) = unarg (narg a mv)
-              
-              in oneStep {!aᵢ!} (cv pᵢ)
+              in onV id (λ ( vₘ , vf ) → oneStep (aᵢ vₘ) (vf (msg (aᵢ vₘ)))) (cv pᵢ)
 
 open InteractiveProof public 
