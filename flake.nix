@@ -12,7 +12,7 @@
     in
     {
       devShells = forAllSystems (system: {
-        default = nixpkgsFor.${system}.mkShell {
+        devShell.${system} = nixpkgsFor.${system}.mkShell {
           packages = [
             (nixpkgsFor.${system}.agda.withPackages (ps: [
               (ps.standard-library.overrideAttrs (oldAttrs: { version = "2.0-dev"; src = inputs.agda-stdlib; }))
@@ -21,6 +21,6 @@
           ];
         };
       });
-      herculesCI.ciSystems = [ "x86_64-linux" "aarch64-linux" ];
+      herculesCI.ciSystems = [ "x86_64-linux" ];
     };
 }
