@@ -6,15 +6,16 @@
 
   outputs = { self, nixpkgs, agda-stdlib }:
     let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      definedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs definedSystems;
+      nixpkgsFor = forAllSystems (system: nixpkgs.legacyPackages.${system});
     in
     {
-
       devShells = forAllSystems (system: {
         devShell.${system} = nixpkgsFor.${system}.mkShell {
           packages = [
             (nixpkgsFor.${system}.agda.withPackages (ps: [
-              (ps.standard-library.overrideAttrs (oldAttrs: { version = "2.0-dev"; src = inputs.agda-stdlib; }))
+              (ps.standard-library.overrideAttrs (oldAttrs: { version = "2.0-dev"; src = agda-stdlib; }))
               ps.agda-categories
             ]))
           ];
