@@ -4,13 +4,12 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   inputs.agda-stdlib = { url = "github:agda/agda-stdlib"; flake = false; };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs = { self, nixpkgs, agda-stdlib }:
     let
-      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      nixpkgsFor = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
     in
     {
+
       devShells = forAllSystems (system: {
         devShell.${system} = nixpkgsFor.${system}.mkShell {
           packages = [
