@@ -1,26 +1,24 @@
 open import Level using (Level; _⊔_)
 module IOP { ℓₚ ℓₘ : Level } where
 
-open import Data.Product
-open import Data.List
---open import Data.Nat
-open import Data.Bool
-open import Data.Sum
-open import Function hiding (_↔_)
 
 -- Interactive Oracle Proofs
 
-
 module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
 
-  data Verification : Set ℓₘ where
-    terminal : Bool → Verification
-    nextStep : (m × (m → Verification)) → Verification
+  open import Data.Nat using (ℕ; zero; suc)
+  open import Data.Bool
+  open import Data.Sum
+  open import Data.Product
+  open import Function hiding (_↔_)
 
-  onV : ∀ {ℓx : Level} {a : Set ℓx}
-    → (Bool → a) → ((m × (m → Verification)) → a) → Verification → a
-  onV r l (terminal x) = r x
-  onV r l (nextStep x) = l x
+  data Verification : {i : ℕ} → Set ℓₘ where
+    terminal : Bool → Verification {zero}
+    nextStep : ∀ {n : ℕ} → m × (m → Verification {suc n}) → Verification {n}
+
+  onV : ∀ {ℓx : Level} {a : Set ℓx} {i : ℕ}
+    → (Bool → a) → (m × (m → Verification {i})) → a → Verification {suc i} → a
+  onV = {!!}
 
   data Argument : Set ℓₘ where
     arg : m × (m → Argument) → Argument
@@ -28,9 +26,9 @@ module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
   unarg : Argument → m × (m → Argument)
   unarg (arg a) = a
   msg : Argument → m
-  msg (arg x) = proj₁ x
+  msg = proj₁ ∘ unarg
   narg : Argument → (m → Argument)
-  narg (arg x) = proj₂ x
+  narg = proj₂ ∘ unarg
 
 
   pₙ : m → Argument → m
@@ -39,13 +37,13 @@ module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
   Prover : ∀ {ℓ} → (p : Set ℓ) → Set (ℓₘ ⊔ ℓ)
   Prover p = p → Argument
   
-  Verifier : ∀ {ℓ} → (p : Set ℓ) → Set (ℓₘ ⊔ ℓ)
-  Verifier p = p → (m → Verification)
+  Verifier : ∀ {ℓ} {k : ℕ} → (p : Set ℓ) → Set (ℓₘ ⊔ ℓ)
+  Verifier {ℓ} {k} p = p → (m → Verification {k})
 
-  data IP (p : Set ℓₚ) : Set (ℓₚ ⊔ ℓₘ) where
-    _↔_ : Prover p → Verifier p → IP p 
+  data IP {k : ℕ} (p : Set ℓₚ) : Set (ℓₚ ⊔ ℓₘ) where
+    _↔_ : Prover p → Verifier {k = k} p → IP p 
 
-  ip : IP p → p → Bool
+  ip : ∀ {k : ℕ} → IP {k} p → p → Bool
   ip (pr ↔ vr) x = let ia = pr x
     in oneStep ia (vr x (msg ia))
     where
@@ -56,3 +54,18 @@ module InteractiveProof (p : Set ℓₚ) (m : Set ℓₘ) where
               in onV id (λ ( vₘ , vf ) → oneStep (aᵢ vₘ) (vf (msg (aᵢ vₘ)))) (cv pᵢ)
 
 open InteractiveProof public 
+
+
+
+-- open import Relation.Binary
+
+-- module IP (Prog : Set) (IO : Set) (M : Set)
+--   (a : (REL Prog IO 0ℓ)) where
+  
+--   record P : Set where
+--     field
+--       Λ : M
+--       encode : Decidable a → M
+--       process : M → M → M
+
+-- open IP public
